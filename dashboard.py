@@ -220,19 +220,6 @@ def show_summary_tables(dataframe):
         fig = px.box(dataframe, y=col, title=f'Box Plot for {col}', color_discrete_sequence=['lightcoral'])
         st.plotly_chart(fig)
 
-     # Data types of columns
-    st.write("### <span style='color:blue'>Data Types:</span>", unsafe_allow_html=True)
-    data_types_df = pd.DataFrame(dataframe.dtypes, columns=['Data Type']).T
-    st.write(data_types_df)
-
-    # Create a pie chart for data types
-    data_type_counts = dataframe.dtypes.value_counts().reset_index()
-    data_type_counts.columns = ['Data Type', 'Count']
-    data_type_counts['Data Type'] = data_type_counts['Data Type'].astype(str)  # Convert data types to string
-    fig_pie = px.pie(data_type_counts, values='Count', names='Data Type', title='Distribution of Data Types')
-    st.plotly_chart(fig_pie)
-
-
      # Missing values
     st.write("### <span style='color:blue'>Missing Values:</span>", unsafe_allow_html=True)
     missing_values = dataframe.isnull().sum()
