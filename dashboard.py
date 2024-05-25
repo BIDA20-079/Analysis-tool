@@ -222,6 +222,34 @@ def show_summary_tables(dataframe):
     for col in numerical_cols:
         fig = px.box(dataframe, y=col, title=f'Box Plot for {col}', color_discrete_sequence=['lightcoral'])
         st.plotly_chart(fig)
+     # Missing values
+    st.write("### <span style='color:blue'>Missing Values:</span>", unsafe_allow_html=True)
+    missing_values = dataframe.isnull().sum()
+    st.write(missing_values.to_frame().T)
+
+    # Create a bar chart for missing values
+    if missing_values.sum() == 0:
+        st.write("No missing values in the dataset.")
+    else:
+        fig_bar = px.bar(missing_values[missing_values > 0], title='Missing Values per Column')
+        st.plotly_chart(fig_bar)
+
+
+    # Categorical variables
+    categorical_cols = dataframe.select_dtypes(include=['object']).columns
+    for col in categorical_cols:
+        st.write(f"### <span style='color:blue'>Unique values for {col}:</span>", unsafe_allow_html=True)
+        st.write(dataframe[col].value_counts().to_frame().T)
+
+    # Date-time analysis
+    date_cols = dataframe.select_dtypes(include=['datetime64']).columns
+    for col in date_cols:
+        st.write(f"### <span style='color:blue'>Date-time analysis for {col}:</span>", unsafe_allow_html=True)
+        st.write(pd.DataFrame({
+            'Earliest Date': [dataframe[col].min()],
+            'Latest Date': [dataframe[col].max()],
+            'Range of Dates': [dataframe[col].max() - dataframe[col].min()]
+        }).T)    
   
 # Load or define the DataFrame
 # Example:
