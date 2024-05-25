@@ -4,11 +4,14 @@ import pandas as pd
 import os
 import warnings
 warnings.filterwarnings('ignore')
+import streamlit as st
 import random
 import datetime
 import logging
 import base64  # Import base64 library
+import threading
 import requests
+import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -28,20 +31,10 @@ with col2:
     st.title("WELCOME TO OLYMPICS ANALYSIS TOOL")
 
 # Define functions for analysis
-def show_website_visits_summary(dataframe, visualization_type):
+def show_website_visits_summary(dataframe):
     st.title("Summary of Website Visits by Country")
     summary_stats = dataframe.groupby('country').size().reset_index(name='Visits')
-    
-    if visualization_type == "Pie Chart":
-        fig_country = px.pie(summary_stats, values='Visits', names='country', title='Summary of Website Visits by Country')
-    elif visualization_type == "Bar Chart":
-        fig_country = px.bar(summary_stats, x='country', y='Visits', title='Summary of Website Visits by Country')
-    elif visualization_type == "Line Chart":
-        fig_country = px.line(summary_stats, x='country', y='Visits', title='Summary of Website Visits by Country')
-    else:
-        st.error("Invalid visualization type selected!")
-    
-    st.plotly_chart(fig_country, use_container_width=True)
+    st.write(summary_stats)
 
 def show_summary_tables(dataframe):
     st.title("Summary Tables")
@@ -80,147 +73,38 @@ def show_top_n_values(dataframe):
         st.write(f"### Top {n} Values for {col}")
         st.write(dataframe[col].value_counts().head(n))
 
-# Function to fetch real web server logs from an API
-def fetch_real_web_server_logs(num_logs):
-    api_endpoint = "https://my.api.mockaroo.com/olympics?key=5adf4f80"
-    response = requests.get(api_endpoint)
-    if response.status_code == 200:
-        logs_json = response.json()
-        logs = []
-        for log_entry in logs_json[:num_logs]:
-            logs.append([
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                log_entry.get("IP Address", ""),
-                log_entry.get("Country", ""),
-                log_entry.get("Referrer", ""),
-                log_entry.get("Sport Category", ""),
-                log_entry.get("Time Visits", ""),
-                log_entry.get("Time Spent", ""),
-                log_entry.get("Website Visit", ""),
-                log_entry.get("Status Code", ""),
-                log_entry.get("User Agent", ""),
-                log_entry.get("Requested Url", "")
-            ])
-        return logs
-    else:
-        st.error("Failed to fetch web server logs from the API.")
-        return None
+# File uploader
+fl = st.file_uploader(":file_folder: Upload a file", type=(["csv", "txt", "xlsx", "xls"]))
 
-# Function to generate dummy web server logs
-def generate_web_server_logs(num_logs):
-    logs = []
-    for _ in range(num_logs):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ip_address = f"{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(0, 255)}"
-        countries = ["USA", "UK", "Canada", "Germany"]
-        country = random.choice(countries)
-        referrers = ["Google", "Bing", "Yahoo", "Direct"]
-        referrer = random.choice(referrers)
-        sport_categories = ["Football", "Basketball", "Tennis", "Swimming"]
-        sport_category = random.choice(sport_categories)
-        time_visits = random.randint(1, 10)
-        time_spent = random.randint(10, 600)
-        website_visits = random.randint(1, 100)
-        status_codes = [200, 304]
-        status_code = random.choice(status_codes)
-        user_agents = ["Chrome", "Firefox", "Safari", "Edge"]
-        user_agent = random.choice(user_agents)
-        requested_urls = ["/index.html", "/images/games.jpg", "/searchsports.php", "/football.html"]
-        requested_url = random.choice(requested_urls)
-        log_entry = {
-            "Time Stamp": timestamp,
-            "IP Address": ip_address,
-            "Country": country,
-            "Referrer": referrer,
-            "Sport Category": sport_category,
-            "Time Visits": time_visits,
-            "Time Spent": time_spent,
-            "Website Visit": website_visits,
-            "Status Code": status_code,
-            "User Agent": user_agent,
-            "Requested Url": requested_url
-        }
-        logs.append(log_entry)
-    return logs
+if fl is not None:
+    # Read the file if uploaded
+    df = pd.read_csv(fl, encoding="ISO-8859-1")
 
-# Function to display the log generation form
-def display_log_generation_form():
-    st.subheader("Generate Web Server Logs")
-    num_logs = st.number_input("Number of Logs to Generate", min_value=1, step=1, value=10)
-    if st.button("Generate Logs"):
-        logs = fetch_real_web_server_logs(num_logs)
-        if logs:
-            if "logs_df" not in st.session_state:
-                st.session_state.logs_df = pd.DataFrame(columns=["Time Stamp", "IP Address", "Country", "Referrer", "Sport Category", "Time Visits", "Time Spent", "Website Visit", "Status Code", "User Agent", "Requested Url"])
-            st.session_state.logs_df = pd.concat([st.session_state.logs_df, pd.DataFrame(logs, columns=["Time Stamp", "IP Address", "Country", "Referrer", "Sport Category", "Time Visits", "Time Spent", "Website Visit", "Status Code", "User Agent", "Requested Url"])], ignore_index=True)
-            with st.expander("View Generated Logs"):
-                st.dataframe(st.session_state.logs_df)  # Display logs as DataFrame
-            # Add download button
-            download_link = create_download_link(st.session_state.logs_df.to_csv(index=False), "web_server_logs.csv", "Download Logs")
-            st.markdown(download_link, unsafe_allow_html=True)
-        else:
-            st.error("Failed to fetch web server logs from the API.")
-    elif st.session_state.get("logs_df") is not None:  # Check if logs already exist
-        with st.expander("View Generated Logs"):
-            st.dataframe(st.session_state.logs_df)  # Display logs as DataFrame
-        # Add download button
-        download_link = create_download_link(st.session_state.logs_df.to_csv(index=False), "web_server_logs.csv", "Download Logs")
-        st.markdown(download_link, unsafe_allow_html=True)
+    # Dropdown menu for analysis options
+    analysis_option = st.selectbox(
+        "Select an analysis option",
+        ["Select an option", "View Data", "Descriptive Statistics", "Summary of Website Visits",
+         "Data Types and Null Values","Distribution Plots", "Top N Values"]
+    )
 
-# Function to create download link
-def create_download_link(data, filename, text):
-    b64 = base64.b64encode(data.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">{text}</a>'
-    return href
+    if analysis_option == "View Data":
+        st.write("### Uploaded File Contents:")
+        st.dataframe(df)
 
-# Main function to display the dashboard
-def main():
-    display_log_generation_form()
+    elif analysis_option == "Descriptive Statistics":
+        show_descriptive_statistics(df)
 
-    # Sidebar for adjustable settings
-    st.sidebar.header("Adjustable Settings")
-    sidebar_option = st.sidebar.selectbox("Choose an option", ["Home", "Upload and Analyze Data"])
+    elif analysis_option == "Summary of Website Visits":
+        show_website_visits_summary(df)
 
-    if sidebar_option == "Home":
-        st.write("Welcome to the Olympics Analysis Tool!")
+    elif analysis_option == "Data Types and Null Values":
+        show_data_types_and_null_values(df)
 
-    elif sidebar_option == "Upload and Analyze Data":
-        # File uploader
-        fl = st.file_uploader(":file_folder: Upload a file", type=(["csv", "txt", "xlsx", "xls"]))
-        
-        if fl is not None:
-            # Read the file if uploaded
-            df = pd.read_csv(fl, encoding="ISO-8859-1")
+    elif analysis_option == "Distribution Plots":
+        show_distribution_plots(df)
 
-            # Dropdown menu for analysis options
-            analysis_option = st.selectbox(
-                "Select an analysis option",
-                ["Select an option", "View Data", "Descriptive Statistics", "Summary of Website Visits",
-                "Data Types and Null Values","Distribution Plots", "Top N Values"]
-            )
-
-            if analysis_option == "View Data":
-                st.write("### Uploaded File Contents:")
-                st.dataframe(df)
-
-            elif analysis_option == "Descriptive Statistics":
-                show_descriptive_statistics(df)
-
-            elif analysis_option == "Summary of Website Visits":
-                visualization_type = st.selectbox("Select a visualization type", ["Pie Chart", "Bar Chart", "Line Chart"])
-                show_website_visits_summary(df, visualization_type)
-
-            elif analysis_option == "Data Types and Null Values":
-                show_data_types_and_null_values(df)
-
-            elif analysis_option == "Distribution Plots":
-                show_distribution_plots(df)
-
-            elif analysis_option == "Top N Values":
-                show_top_n_values(df)
-
-if __name__ == "__main__":
-    main()
+    elif analysis_option == "Top N Values":
+        show_top_n_values(df)
 
   # Function to fetch real web server logs from an API
 def fetch_real_web_server_logs(num_logs):
@@ -333,44 +217,14 @@ def show_summary_tables(dataframe):
     for col in numerical_cols:
         fig = px.box(dataframe, y=col, title=f'Box Plot for {col}', color_discrete_sequence=['lightcoral'])
         st.plotly_chart(fig)
-
-     # Missing values
-    st.write("### <span style='color:blue'>Missing Values:</span>", unsafe_allow_html=True)
-    missing_values = dataframe.isnull().sum()
-    st.write(missing_values.to_frame().T)
-
-    # Create a bar chart for missing values
-    if missing_values.sum() == 0:
-        st.write("No missing values in the dataset.")
-    else:
-        fig_bar = px.bar(missing_values[missing_values > 0], title='Missing Values per Column')
-        st.plotly_chart(fig_bar)
-
-
-    # Categorical variables
-    categorical_cols = dataframe.select_dtypes(include=['object']).columns
-    for col in categorical_cols:
-        st.write(f"### <span style='color:blue'>Unique values for {col}:</span>", unsafe_allow_html=True)
-        st.write(dataframe[col].value_counts().to_frame().T)
-
-    # Date-time analysis
-    date_cols = dataframe.select_dtypes(include=['datetime64']).columns
-    for col in date_cols:
-        st.write(f"### <span style='color:blue'>Date-time analysis for {col}:</span>", unsafe_allow_html=True)
-        st.write(pd.DataFrame({
-            'Earliest Date': [dataframe[col].min()],
-            'Latest Date': [dataframe[col].max()],
-            'Range of Dates': [dataframe[col].max() - dataframe[col].min()]
-        }).T)
-
-
+  
 # Load or define the DataFrame
 # Example:
 df = pd.read_csv("olympics.csv.csv")
 
 # Call the function to display summary tables
 with st.expander("Summary Statistics"):
-    show_summary_tables(df)
+    show_summary_tables(df)   
 
 # Function to generate reports based on user-selected criteria
 def generate_report(dataframe, start_date, end_date, selected_country, selected_sports_categories):
@@ -391,13 +245,7 @@ def generate_report(dataframe, start_date, end_date, selected_country, selected_
     country_distribution = filtered_data['Country'].value_counts()
     fig_pie = px.pie(country_distribution, values=country_distribution.values, names=country_distribution.index, title='Country Distribution')
 
-    # Export the report to PDF or other formats
-    # Example: Export summary statistics and charts to a PDF file
-    # You can use libraries like ReportLab or pdfkit for PDF generation
 
-    # Display summary statistics
-    st.subheader("Summary Statistics:")
-    st.write(summary_statistics)
 # Function to display website visit insights by country with optional filtering
 def show_website_visit_insights_by_country(dataframe):
     st.title("Website Visit Insights by Country")
@@ -448,12 +296,9 @@ df = pd.read_csv("olympics.csv.csv")
 with st.expander("Website Visit Insights by Country"):
     show_website_visit_insights_by_country(df)
 
-
-
-
 # Add logo
 st.sidebar.title("TOKYO FUN OLYMPICS")
-st.sidebar.image("logo2.jpg", use_column_width=True)
+st.sidebar.image(r"logo2.jpg", use_column_width=True)
 
 # Sidebar filters
 st.sidebar.header("Choose your filter: ")
@@ -658,9 +503,6 @@ visualization_type = st.sidebar.selectbox("4.Select Visualization Type", visuali
 # Call the function to display distribution of website visits by hour of the day
 show_website_visits_by_hour(filtered_df, visualization_type)
 
-
-   
-
 # Group the data by referrer and country
 referrer_country_data = df.groupby(['referrer', 'country']).size().reset_index(name='Visits')
 
@@ -675,4 +517,3 @@ st.plotly_chart(fig, use_container_width=True)
 csv = referrer_country_data.to_csv(index=False).encode('utf-8')
 st.download_button('Download Data', data=csv, file_name='referrer_country_data.csv', mime='text/csv',
                    help='Click here to download the data represented in the treemap')
-
