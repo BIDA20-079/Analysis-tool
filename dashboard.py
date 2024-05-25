@@ -46,13 +46,6 @@ def show_summary_tables(dataframe):
     st.write("### Missing Values:")
     st.write(dataframe.isnull().sum())
 
-def show_data_types_and_null_values(dataframe):
-    st.title("Data Types and Null Values")
-    st.write("### Data Types:")
-    st.write(dataframe.dtypes)
-    st.write("### Missing Values:")
-    st.write(dataframe.isnull().sum())
-
 def show_descriptive_statistics(dataframe):
     st.title("Descriptive Statistics")
     st.write(dataframe.describe())
