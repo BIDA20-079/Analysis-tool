@@ -106,7 +106,7 @@ if fl is not None:
     elif analysis_option == "Top N Values":
         show_top_n_values(df)
 
-  # Function to fetch real web server logs from an API
+ # Function to fetch real web server logs from an API
 def fetch_real_web_server_logs(num_logs):
     api_endpoint = "https://my.api.mockaroo.com/olympics?key=5adf4f80"
     response = requests.get(api_endpoint)
@@ -115,7 +115,7 @@ def fetch_real_web_server_logs(num_logs):
         logs = []
         for log_entry in logs_json[:num_logs]:
             logs.append([
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # This line generates the timestamp at the time of fetching
                 log_entry.get("IP Address", ""),
                 log_entry.get("Country", ""),
                 log_entry.get("Referrer", ""),
