@@ -91,9 +91,6 @@ if fl is not None:
     elif analysis_option == "Summary of Website Visits":
         show_website_visits_summary(df)
 
-    elif analysis_option == "Data Types and Null Values":
-        show_data_types_and_null_values(df)
-
     elif analysis_option == "Distribution Plots":
         show_distribution_plots(df)
 
