@@ -106,16 +106,22 @@ if fl is not None:
     elif analysis_option == "Top N Values":
         show_top_n_values(df)
 
- # Function to fetch real web server logs from an API
+ import pytz  # Import pytz library for timezone support
+
+# Function to fetch real web server logs from an API
 def fetch_real_web_server_logs(num_logs):
     api_endpoint = "https://my.api.mockaroo.com/olympics?key=5adf4f80"
     response = requests.get(api_endpoint)
     if response.status_code == 200:
         logs_json = response.json()
         logs = []
+        # Set the timezone to the desired one (e.g., UTC)
+        tz = pytz.timezone('UTC')
         for log_entry in logs_json[:num_logs]:
+            # Generate the timestamp in the specified timezone
+            timestamp = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
             logs.append([
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # This line generates the timestamp at the time of fetching
+                timestamp,
                 log_entry.get("IP Address", ""),
                 log_entry.get("Country", ""),
                 log_entry.get("Referrer", ""),
@@ -131,7 +137,6 @@ def fetch_real_web_server_logs(num_logs):
     else:
         print("Failed to fetch web server logs from the API.")
         return None
-
 # Function to generate dummy web server logs
 def generate_web_server_logs(num_logs):
     logs = []
