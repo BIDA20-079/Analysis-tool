@@ -78,7 +78,7 @@ if fl is not None:
     analysis_option = st.selectbox(
         "Select an analysis option",
         ["Select an option", "View Data", "Descriptive Statistics", "Summary of Website Visits",
-         "Data Types and Null Values","Distribution Plots", "Top N Values"]
+         "Distribution Plots", "Top N Values"]
     )
 
     if analysis_option == "View Data":
