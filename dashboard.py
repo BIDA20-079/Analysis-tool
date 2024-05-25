@@ -108,6 +108,8 @@ if fl is not None:
 
  import pytz  # Import pytz library for timezone support
 
+import pytz  # Import pytz library for timezone support
+
 # Function to fetch real web server logs from an API
 def fetch_real_web_server_logs(num_logs):
     api_endpoint = "https://my.api.mockaroo.com/olympics?key=5adf4f80"
@@ -137,6 +139,7 @@ def fetch_real_web_server_logs(num_logs):
     else:
         print("Failed to fetch web server logs from the API.")
         return None
+
 # Function to generate dummy web server logs
 def generate_web_server_logs(num_logs):
     logs = []
