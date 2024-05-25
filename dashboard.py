@@ -14,6 +14,7 @@ import requests
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pytz  # Import pytz library for timezone support
 
 # Set page configuration
 st.set_page_config(page_title="Olympics", page_icon=":bar_chart:", layout="wide")
@@ -106,7 +107,6 @@ if fl is not None:
     elif analysis_option == "Top N Values":
         show_top_n_values(df)
 
- import pytz  # Import pytz library for timezone support
 # Function to fetch real web server logs from an API
 def fetch_real_web_server_logs(num_logs):
     api_endpoint = "https://my.api.mockaroo.com/olympics?key=5adf4f80"
