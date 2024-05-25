@@ -114,8 +114,8 @@ def fetch_real_web_server_logs(num_logs):
     if response.status_code == 200:
         logs_json = response.json()
         logs = []
-        # Set the timezone to the desired one (e.g., UTC)
-        tz = pytz.timezone('UTC')
+        # Set the timezone to Central Africa Time (CAT)
+        tz = pytz.timezone('Africa/Gaborone')  # or simply 'CAT'
         for log_entry in logs_json[:num_logs]:
             # Generate the timestamp in the specified timezone
             timestamp = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
